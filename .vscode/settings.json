@@ -1,0 +1,4 @@
+{
+    "FSharp.dotnetRoot": "/usr/lib/dotnet",
+    "FSharp.TestExplorer.UseLegacyDotnetCliIntegration": true
+}

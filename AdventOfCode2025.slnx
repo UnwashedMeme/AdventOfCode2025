@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AdventOfCode2025.Tests/AdventOfCode2025.Tests.fsproj" />
+  <Project Path="AdventOfCode2025/AdventOfCode2025.fsproj" />
+</Solution>
