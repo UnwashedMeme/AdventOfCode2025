@@ -13,28 +13,28 @@ type TestCase = {
 [<Test>]
 let ``parsing input works correctly`` () = 
     let testCases = [
-        { Input = "R1"; Expected = { Steps = 1 } }
-        { Input = "L2"; Expected = { Steps = -2 } }
-        { Input = "L240"; Expected = { Steps = -240 } }
-        { Input = "R130"; Expected = { Steps = 130 } }
+        { Input = "R1"; Expected =  1}
+        { Input = "L2"; Expected =  -2}
+        { Input = "L240"; Expected =  -240}
+        { Input = "R130"; Expected =  130}
     ]
 
     testCases
     |> List.iter (fun testCase ->
-        let actual = Instruction.Parse testCase.Input
+        let actual = Parse testCase.Input
         actual |> should equal testCase.Expected
     )
 
 [<Test>]
 let ``spinning the dial works correctly`` () =
     let testCases = [
-        { Position = 0 }, 10, { Position = 10 }
-        { Position = 90 }, 15, { Position = 5 }
-        { Position = 5 }, -10, { Position = 95 }
-        { Position = 0 }, -1, { Position = 99 }
-        { Position = 3 }, -105, { Position = 98 }
-        { Position = 2 }, -307, { Position = 95 }
-        { Position = 10 }, 204, { Position = 14 }
+        Dial 0, 10, Dial 10
+        Dial 90, 15, Dial 5
+        Dial 5, -10, Dial 95
+        Dial 0, -1, Dial 99
+        Dial 3, -105, Dial 98
+        Dial 2, -307, Dial 95
+        Dial 10, 204, Dial 14
     ]
 
     testCases
