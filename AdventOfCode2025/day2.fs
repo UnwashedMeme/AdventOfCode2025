@@ -1,4 +1,4 @@
-module day2
+module AdventOfCode2025.Day2
 
 open System.IO
 
@@ -56,9 +56,9 @@ let part1 (args:string[]) =
     do printfn "Total: %d" (candies |> Seq.sum)
     0
 
-[<EntryPoint>]
+
 // part2's answer is 21932258645
-let part2 args =
+let part2 (args:string[]) =
     let fn = if args.Length > 0 then args.[0] else inputFilename
     do printfn "Reading input file: %s" fn
     let ranges = read fn

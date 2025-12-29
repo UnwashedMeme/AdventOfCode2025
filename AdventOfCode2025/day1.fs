@@ -80,8 +80,8 @@ let Apply2 (dial, zeroCount) inst =
     do printfn "Orig: %A \tInst: %A \tNew: %A" dial inst newdial
     newdial, zeroCount + zc
 
-[<EntryPoint>]
-let part1 args =
+
+let part1 (args:string[]) =
     let fn = if args.Length > 0 then args.[0] else inputFilename
     do printfn "Reading input file: %s" fn
 
