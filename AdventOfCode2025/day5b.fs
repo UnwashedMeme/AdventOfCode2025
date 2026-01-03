@@ -48,7 +48,6 @@ let rec condenseRanges (inputRanges: List<(int64 * int64)>) : List<(int64 * int6
             x :: condenseRanges tail
 
 
-
 let icount r = 
     let s, e = r
     1L + e - s
@@ -57,3 +56,9 @@ let report (lst: List<int64*int64>) =
     let c = lst |> List.map icount |> List.sum
     let len = lst |> List.length
     printfn "Condensed to %d ranges, total ingredients: %d" len c
+
+// answer is 360341832208407
+let part2 = 
+    
+    let ranges = readFreshRanges inputFilename
+    ranges |> condenseRanges |> report

@@ -99,50 +99,6 @@ let overlaps t nl =
     | _ -> true
     
 
-// let rec merge (tree: Tree) (nl: Tree) =
-//     match nl with
-//     | Empty -> tree
-//     | Node(s, e, l, r) -> 
-//         do printfn "merging nodes"
-//         leavesOf nl |> Seq.fold merge tree 
-
-//     | Leaf(ls, le) ->
-//         match tree with
-//         | Empty -> Leaf(ls, le)
-
-//         // existing leaf consumes
-//         | Leaf(ts, te) when ts <= ls && le <= te -> tree
-//         // new leaf consumes
-//         | Leaf(ts, te) when ls <= ts && te <= le -> nl
-//         // new leaf to left
-//         | Leaf(ts, te) when le < ts -> Node(ls, te, nl, tree)
-//         // new leaf to right
-//         | Leaf(ts, te) when te < ls -> Node(ts, le, tree, nl)
-//         // leaf overlaps on the left
-//         | Leaf(ts, te) when ls < ts -> Leaf(ls, te)
-//         // leaf overlaps on the right
-//         | Leaf(ts, te) when te <= le -> Leaf(ts, le)
-
-//         // leaf encompasses node
-//         | Node(ns, ne, _, _) when ls <= ns && ne <= le -> nl
-//         // new leaf to left
-//         | Node(ns, ne, _, _) when le < ns -> Node(ls, ne, nl, tree)
-//         // new leaf to right
-//         | Node(ns, ne, _, _) when ne < ls -> Node(ns, le, tree, nl)
-
-//         // new leaf overlaps on the left
-//         | Node(ns, ne, l, r) when ls <= ns && le <= ne -> 
-//             Node(ls, ne, merge l nl, r)
-//         // new leaf overlaps on the right
-//         | Node(ns, ne, l, r) when ns <= ls && ne <= le -> 
-//             Node(ns, le, l, merge r nl)
-
-//         // new leaf inside the node
-//         | Node(ns, ne, l, r) when ns <= ls && le <= ne ->
-//             let mergeleft = merge l nl
-//             merge mergeleft r
-//         | _ -> failwith "unhandled case"
-
 
 // still doesn't work
 let rec merge (tree: Tree) (nl: Tree) =
@@ -231,6 +187,8 @@ let printTree tree =
     do printfn "Ingredient count: %d" (ingredientCount tree)
 
 
+let freshRanges = readFreshRanges exampleFilename;;
+let inputRanges = readFreshRanges inputFilename;;
 // freshRanges[0..2] |> buildTree |> printTree;;
 // freshRanges[0..3] |> buildTree |> printTree;;
 // let t = freshRanges[0..2] |> buildTree ;;
@@ -242,59 +200,6 @@ let printTree tree =
     
 
 
-let rec condenseRanges (inputRanges: List<(int64 * int64)>) : List<(int64 * int64)> =
-    let overlap x y = 
-        let s1, e1 = x
-        let s2, e2 = y
-        not (e1 < s2 || e2 < s1)
-    let lmerge x y =
-        let s1, e1 = x
-        let s2, e2 = y
-        let mr = (min s1 s2, max e1 e2)
-        do printfn "merging %A and %A to %A" x y mr
-        mr 
-    let tryMerge x y = 
-        if overlap x y then
-            lmerge x y
-        else
-            y
-
-    match inputRanges with
-    | [] -> []
-    | [x] -> [x]
-    | x :: tail ->
-        if Seq.exists (overlap x) tail then
-            do printfn "Found overlap for %A" x
-            tail |> List.map (tryMerge x) |> condenseRanges
-        else
-            x :: condenseRanges tail
-
-
-
-let icount r = 
-    let s, e = r
-    1L + e - s
-
-let report (lst: List<int64*int64>) =
-    let c = lst |> List.map icount |> List.sum
-    let len = lst |> List.length
-    printfn "Condensed to %d ranges, total ingredients: %d" len c
-
-let freshList = freshRanges |> Array.toList;;
-let inputList = inputRanges |> Array.toList;;
-freshList |> condenseRanges |> report;;
-inputList |> condenseRanges |> report;;
-inputList |> condenseRanges |> condenseRanges |> report;;
-List.append freshList freshList |> condenseRanges |> report;;
-
-// 5440247521108286 -- too high
-// 5440247521108108 -- too high
-// 5171993208749663 -- too high
-// 5171993208749663
-// 5171993208749663
-// 5464131354971523L
-// 4999904337332828L // wrong
-// 530187958501278304L
 let part2  =
     
     let ranges = readFreshRanges inputFilename
