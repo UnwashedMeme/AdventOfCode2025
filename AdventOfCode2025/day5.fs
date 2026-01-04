@@ -53,7 +53,6 @@ let part1 fn =
     ingredients |> Seq.filter (isFresh freshRanges) |> Seq.length
 
 
-
 type Tree =
     | Leaf of int64 * int64
     | Node of int64 * int64 * Tree * Tree
@@ -92,15 +91,13 @@ let rec ingredientCount tree =
 let overlaps t nl = 
     let ts,te = span t
     match nl with
-    | Leaf(ls, le) when te < ls -> false
-    | Leaf(ls, le) when le < ts -> false
-    | Node(ns, ne, _, _) when te < ns -> false
-    | Node(ns, ne, _, _) when ns < ts -> false
+    | Leaf(ls, le) when (te + 1L) < ls -> false
+    | Leaf(ls, le) when (le + 1L) < ts -> false
+    | Node(ns, ne, _, _) when (ne + 1L) < ns -> false
+    | Node(ns, ne, _, _) when (ns + 1L) < ts -> false
     | _ -> true
     
 
-
-// still doesn't work
 let rec merge (tree: Tree) (nl: Tree) =
     let mergeLeaves l1 l2 =
         let s1, e1 = l1
@@ -110,16 +107,16 @@ let rec merge (tree: Tree) (nl: Tree) =
         // l2 consumes
         elif s2 <= s1 && e1 <= e2 then Leaf l2
         // l1 to left of l2
-        elif e1 < s2 then Node(s1, e2, Leaf l1, Leaf l2)
+        elif (e1 + 1L) < s2 then Node(s1, e2, Leaf l1, Leaf l2)
         // l2 to left of l1
-        elif e2 < s1 then Node(s2, e1, Leaf l2, Leaf l1)
+        elif (e2 + 1L) < s1 then Node(s2, e1, Leaf l2, Leaf l1)
         else Leaf (min s1 s2, max e1 e2)
 
     let nodeLeaf (lt:Tree) (rt:Tree) nl =
         let nls, nle = nl 
         let lts, lte = span lt
         let rts, rte = span rt
-        do printfn "nodeLeaf lt: (%d,%d), rt: (%d,%d), nl: (%d,%d)" lts lte rts rte nls nle
+        //do printfn "nodeLeaf lt: (%d,%d), rt: (%d,%d), nl: (%d,%d)" lts lte rts rte nls nle
         // nl is superset of both
         if nls <= lts && rte <= nle then
             Leaf nl
@@ -127,23 +124,22 @@ let rec merge (tree: Tree) (nl: Tree) =
         elif lte < nls && nle < rts then
             let mergeleft= merge lt (Leaf nl)
             Node (lts, rte, mergeleft, rt)
-        // entirely to the left
-        elif nle < lts then
-            Node (nls, rte, 
-                Leaf nl, Node (lts, rte, lt, rt))
-        // entirely to the right
-        elif rte < nls then
-            Node (lts, nle,
-                Node (lts, rte, lt, rt),  Leaf nl)
+        
         else
             let newleft = 
                 if overlaps lt (Leaf nl) then
                     merge lt (Leaf (nls, min nle lte))
+                // entirely to the left
+                elif nle < lts then
+                    Node(nls, lte, Leaf nl, lt)
                 else
                     lt
             let newRight =
                 if overlaps rt (Leaf nl) then
                     merge rt (Leaf (max nls rts, nle))
+                // entirely to the right                    
+                elif rte < nls then
+                    Node(rts, nle, rt, Leaf nl)
                 else
                     rt
             let midleaf =
@@ -197,11 +193,22 @@ let inputRanges = readFreshRanges inputFilename;;
 // merge t l |> printTree;;
 // freshRanges |> buildTree |> printTree;;
 // inputRanges |> buildTree |> printTree;;
+
+let isFreshTree (tree: Tree) (ingredient: int64) =
+    let rec loop t =
+        match t with
+        | Empty -> false
+        | Leaf(s, e) -> s <= ingredient && ingredient <= e
+        | Node(ns, ne, l, r) ->
+            ingredient > ns && ingredient < ne &&
+                (loop l || loop r)
+    loop tree
+
+//ingredients |> Array.filter (isFreshTree f) |> Seq.length;; 
     
 
-
+// answer is 360341832208407
 let part2  =
-    
     let ranges = readFreshRanges inputFilename
     let t = buildTree ranges
     ingredientCount t
