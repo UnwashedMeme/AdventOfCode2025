@@ -103,12 +103,8 @@ let rec merge (tree: Tree) (nl: Tree) =
     let mergeLeaves l1 l2 =
         let s1, e1 = l1
         let s2, e2 = l2
-        // l1 consumes
-        if s1 <= s2 && e2 <= e1 then Leaf l1
-        // l2 consumes
-        elif s2 <= s1 && e1 <= e2 then Leaf l2
         // l1 to left of l2
-        elif (e1 + 1L) < s2 then Node(s1, e2, Leaf l1, Leaf l2)
+        if (e1 + 1L) < s2 then Node(s1, e2, Leaf l1, Leaf l2)
         // l2 to left of l1
         elif (e2 + 1L) < s1 then Node(s2, e1, Leaf l2, Leaf l1)
         else Leaf(min s1 s2, max e1 e2)
@@ -181,8 +177,8 @@ let printTree tree =
     do printfn "Ingredient count: %d" (ingredientCount tree)
 
 
-let freshRanges = readFreshRanges exampleFilename;;
-let inputRanges = readFreshRanges inputFilename;;
+let freshRanges = readFreshRanges exampleFilename
+let inputRanges = readFreshRanges inputFilename
 // freshRanges[0..2] |> buildTree |> printTree;;
 // freshRanges[0..3] |> buildTree |> printTree;;
 // let t = freshRanges[0..2] |> buildTree ;;
@@ -209,6 +205,3 @@ let part2 =
     let ranges = readFreshRanges inputFilename
     let t = buildTree ranges
     ingredientCount t
-
-
-
