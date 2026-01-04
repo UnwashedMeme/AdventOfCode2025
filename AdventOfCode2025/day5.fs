@@ -33,7 +33,7 @@ let readFreshRanges fn =
     |> Seq.takeWhile (fun line -> line <> "")
     |> Seq.map (fun line ->
         let parts = line.Split('-')
-        let left,right = int64 parts[0], int64 parts[1]
+        let left, right = int64 parts[0], int64 parts[1]
         if left < right then left, right else right, left)
     |> Seq.toArray
 
@@ -64,7 +64,7 @@ let rec leafCount =
     | Leaf(_, _) -> 1
     | Node(_, _, l, r) -> leafCount l + leafCount r
 
-let rec leavesOf t = 
+let rec leavesOf t =
     seq {
         match t with
         | Empty -> ()
@@ -74,7 +74,7 @@ let rec leavesOf t =
             yield! leavesOf r
     }
 
-let span tree = 
+let span tree =
     match tree with
     | Empty -> 0L, 0L
     | Leaf(s, e) -> s, e
@@ -84,19 +84,20 @@ let span tree =
 let rec ingredientCount tree =
     match tree with
     | Empty -> 0L
-    | Leaf (ls, le) -> 1L + le - ls
+    | Leaf(ls, le) -> 1L + le - ls
     | Node(_, _, l, r) -> ingredientCount l + ingredientCount r
 
 
-let overlaps t nl = 
-    let ts,te = span t
+let overlaps t nl =
+    let ts, te = span t
+
     match nl with
     | Leaf(ls, le) when (te + 1L) < ls -> false
     | Leaf(ls, le) when (le + 1L) < ts -> false
     | Node(ns, ne, _, _) when (ne + 1L) < ns -> false
     | Node(ns, ne, _, _) when (ns + 1L) < ts -> false
     | _ -> true
-    
+
 
 let rec merge (tree: Tree) (nl: Tree) =
     let mergeLeaves l1 l2 =
@@ -110,10 +111,10 @@ let rec merge (tree: Tree) (nl: Tree) =
         elif (e1 + 1L) < s2 then Node(s1, e2, Leaf l1, Leaf l2)
         // l2 to left of l1
         elif (e2 + 1L) < s1 then Node(s2, e1, Leaf l2, Leaf l1)
-        else Leaf (min s1 s2, max e1 e2)
+        else Leaf(min s1 s2, max e1 e2)
 
-    let nodeLeaf (lt:Tree) (rt:Tree) nl =
-        let nls, nle = nl 
+    let nodeLeaf (lt: Tree) (rt: Tree) nl =
+        let nls, nle = nl
         let lts, lte = span lt
         let rts, rte = span rt
         //do printfn "nodeLeaf lt: (%d,%d), rt: (%d,%d), nl: (%d,%d)" lts lte rts rte nls nle
@@ -122,53 +123,50 @@ let rec merge (tree: Tree) (nl: Tree) =
             Leaf nl
         // entirely in the middle
         elif lte < nls && nle < rts then
-            let mergeleft= merge lt (Leaf nl)
-            Node (lts, rte, mergeleft, rt)
-        
+            let mergeleft = merge lt (Leaf nl)
+            Node(lts, rte, mergeleft, rt)
+
         else
-            let newleft = 
+            let newleft =
                 if overlaps lt (Leaf nl) then
-                    merge lt (Leaf (nls, min nle lte))
+                    merge lt (Leaf(nls, min nle lte))
                 // entirely to the left
                 elif nle < lts then
                     Node(nls, lte, Leaf nl, lt)
                 else
                     lt
+
             let newRight =
                 if overlaps rt (Leaf nl) then
-                    merge rt (Leaf (max nls rts, nle))
-                // entirely to the right                    
+                    merge rt (Leaf(max nls rts, nle))
+                // entirely to the right
                 elif rte < nls then
                     Node(rts, nle, rt, Leaf nl)
                 else
                     rt
+
             let midleaf =
                 if nls < rts && lte < nle then
-                    Leaf (max (lte + 1L) nls, min nle (rts - 1L))
-                else 
+                    Leaf(max (lte + 1L) nls, min nle (rts - 1L))
+                else
                     Empty
+
             let newLeftAndMiddle = merge newleft midleaf
-            Node (min lts nls, max rte nle, newLeftAndMiddle, newRight)
+            Node(min lts nls, max rte nle, newLeftAndMiddle, newRight)
 
     match tree, nl with
     | Empty, _ -> nl
     | _, Empty -> tree
-    | Leaf (s1,e1), Leaf (s2,e2) ->  
-        mergeLeaves (s1,e1) (s2,e2)
-    | Node (_,_, tl, rt), Leaf (nls, nle) ->
-        nodeLeaf tl rt (nls, nle)
-    | Leaf (nls, nle), Node (_,_, lt, rt) ->
-        nodeLeaf lt rt (nls, nle)
-    | Node (_,_, tl, rt), Node (_,_, lt2, rt2) ->
-        merge (merge tl lt2) (merge rt rt2)
+    | Leaf(s1, e1), Leaf(s2, e2) -> mergeLeaves (s1, e1) (s2, e2)
+    | Node(_, _, tl, rt), Leaf(nls, nle) -> nodeLeaf tl rt (nls, nle)
+    | Leaf(nls, nle), Node(_, _, lt, rt) -> nodeLeaf lt rt (nls, nle)
+    | Node(_, _, tl, rt), Node(_, _, lt2, rt2) -> merge (merge tl lt2) (merge rt rt2)
 
 
 let buildTree (ranges: (int64 * int64) array) =
-    ranges
-    |> Seq.map (fun (s, e) -> Leaf(s, e))
-    |> Seq.fold merge Empty
+    ranges |> Seq.map (fun (s, e) -> Leaf(s, e)) |> Seq.fold merge Empty
 
-        
+
 let printTree tree =
     let rec loop indent tree =
         match tree with
@@ -199,16 +197,15 @@ let isFreshTree (tree: Tree) (ingredient: int64) =
         match t with
         | Empty -> false
         | Leaf(s, e) -> s <= ingredient && ingredient <= e
-        | Node(ns, ne, l, r) ->
-            ingredient > ns && ingredient < ne &&
-                (loop l || loop r)
+        | Node(ns, ne, l, r) -> ingredient > ns && ingredient < ne && (loop l || loop r)
+
     loop tree
 
-//ingredients |> Array.filter (isFreshTree f) |> Seq.length;; 
-    
+//ingredients |> Array.filter (isFreshTree f) |> Seq.length;;
+
 
 // answer is 360341832208407
-let part2  =
+let part2 =
     let ranges = readFreshRanges inputFilename
     let t = buildTree ranges
     ingredientCount t
