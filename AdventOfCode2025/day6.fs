@@ -39,7 +39,6 @@ let reduceWith operator =
 let part1Operands (column: string array) = column |> Seq.map int64
 
 
-
 let applyOperators (operands: string array2d) (operators: string array) =
     let colCoun = Array2D.length2 operands
 
