@@ -35,7 +35,7 @@ let area (p: Pair) =
     let a, b = p
     let x1, y1 = a
     let x2, y2 = b
-    (1L + (abs x1 - x2)) * (1L + (abs y1 - y2))
+    (1L + (abs (x1 - x2))) * (1L + (abs (y1 - y2)))
 
 
 type pr =
