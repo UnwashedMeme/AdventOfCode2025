@@ -2,6 +2,8 @@ module AdventOfCode2025.Day10
 
 open System
 open System.IO
+open System.Numerics
+open System.Runtime.InteropServices
 
 
 let baseDir = __SOURCE_DIRECTORY__
@@ -16,7 +18,7 @@ type JoltageLevel = JL of int array
 type Machine =
     { diagram: string
       buttonWiringSchematics: Button seq
-      joltage: JoltageLevel }
+      targetJoltage: JoltageLevel }
 
     member this.enabled state = state = this.diagram
 
@@ -29,18 +31,21 @@ let parseMachine (line: string) =
     let diagram = parts[0] |> trimFL
     let schematicWidth = diagram.Length
 
-    let parseButton (bs:string) : Button =
+    let parseButton (bs: string) : Button =
         let newarr = Array.create schematicWidth 0
         let coords = (trimFL bs).Split ',' |> Array.map int
+
         for c in coords do
             Array.set newarr c 1
+
         Button newarr
-    let parseJoltage js = 
+
+    let parseJoltage js =
         (trimFL js).Split ',' |> Array.map int |> JL
 
     { diagram = diagram
       buttonWiringSchematics = parts[1 .. partLen - 2] |> Seq.map parseButton
-      joltage = parts[partLen - 1] |>  parseJoltage}
+      targetJoltage = parts[partLen - 1] |> parseJoltage }
 
 let readMachines fn =
     fn
@@ -85,6 +90,99 @@ let pressButtons m =
 
     finder 0 (Set.singleton initialState)
 
+
 // part1 answer 558
 let part1 fn =
     fn |> readMachines |> Seq.map pressButtons |> Seq.sum
+
+let addPowerBasic (JL jl) (Button b) = Array.map2 (+) b jl |> JL
+
+let addPowerVectorized (Button b) (JL jl) =
+    let len = b.Length
+    let result = Array.zeroCreate<int> len
+
+    let bSpan = b.AsSpan()
+    let jlSpan = jl.AsSpan()
+    let resSpan = result.AsSpan()
+
+    let bVec = MemoryMarshal.Cast<int, Vector<int>>(bSpan)
+    let jlVec = MemoryMarshal.Cast<int, Vector<int>>(jlSpan)
+    let resVec = MemoryMarshal.Cast<int, Vector<int>>(resSpan)
+
+    for i in 0 .. bVec.Length - 1 do
+        resVec.[i] <- bVec.[i] + jlVec.[i]
+
+    for i in (bVec.Length * Vector<int>.Count) .. len - 1 do
+        resSpan.[i] <- bSpan.[i] + jlSpan.[i]
+
+    JL result
+
+let targetPowerLevel (JL current) (JL target) = Array.forall2 (=) current target
+let safePowerLevel (JL current) (JL target) = Array.forall2 (<=) current target
+
+let adjustJoltage m =
+    let addPower = addPowerBasic
+
+    let initialJoltage = JL(Array.create (m.diagram.Length) 0)
+
+    let rec finder count qjls =
+        let qjls = Seq.cache qjls
+
+        seq {
+            yield!
+                qjls
+                |> Seq.choose (fun jl ->
+                    if targetPowerLevel jl m.targetJoltage then
+                        Some count
+                    else
+                        None)
+
+            let nextLevel =
+                seq {
+                    for jl in qjls do
+                        for b in m.buttonWiringSchematics do
+                            let njl = addPower jl b
+                            if safePowerLevel njl m.targetJoltage then
+                                yield njl
+                 }
+
+            yield! finder (count + 1) nextLevel
+        }
+
+    finder 0 (List.singleton initialJoltage) |> Seq.head
+
+let adjustJoltage2 m =
+    let addPower = addPowerBasic
+
+    let initialJoltage = JL(Array.create (m.diagram.Length) 0)
+
+    let mutable allStates = Set.empty
+    let rec finder count qjls =
+        let count = count + 1
+        do printfn "examining level %A with %A tracked states" count (Set.count allStates)
+        seq {
+            let mutable next = List.empty
+            for jl in qjls do
+                for b in m.buttonWiringSchematics do
+                    let njl = addPower jl b
+                    if targetPowerLevel njl m.targetJoltage then
+                        yield count
+                    elif safePowerLevel njl m.targetJoltage && not (Set.contains njl allStates) then
+                        allStates <- Set.add njl allStates
+                        next <- njl :: next
+            
+            yield! finder count next
+        }
+
+    finder 0 (List.singleton initialJoltage) |> Seq.head
+
+
+
+let part2 (aj:Machine->int) fn =
+    let ms = readMachines fn
+    ms 
+    |> Seq.mapi (fun i m ->
+        let buttoncount = aj m
+        do printfn "Machine %A took %A" i buttoncount
+        buttoncount)
+    |> Seq.sum
