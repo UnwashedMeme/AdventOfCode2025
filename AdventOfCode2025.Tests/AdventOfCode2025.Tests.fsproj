@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,7 +9,8 @@
     <Compile Include="Sample.fs" />
     <Compile Include="day1.fs" />
     <Compile Include="day3.fs" />
-    <Compile Include="day5.fs" /><Compile Include="day9.fs" />
+    <Compile Include="day5.fs" />
+    <Compile Include="day9.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -20,4 +22,5 @@
   <ItemGroup>
     <ProjectReference Include="..\AdventOfCode2025\AdventOfCode2025.fsproj" />
   </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

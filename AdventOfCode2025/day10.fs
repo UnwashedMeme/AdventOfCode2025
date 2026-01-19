@@ -148,6 +148,30 @@ let adjustJoltageBF m =
     finder 0 (List.singleton initialJoltage) |> Seq.head
 
 
+let adjustJoltageBF2 m =
+    let initialJoltage = JL(Array.zeroCreate (m.diagram.Length))
+    
+    let allStates = HashSet<JoltageLevel>()
+    //let mutable allStates = Set.empty
+    let mutable visited = 0
+    let rec finder count  candidates = 
+        let count = count + 1
+        let mutable next = List.empty
+        seq {
+            for jl in candidates do
+                visited <- visited + 1
+                for b in m.buttonWiringSchematics do
+                    let njl = jl + b
+                    if targetPowerLevel m njl then
+                        do printfn "Finish %A \tw/ count=%A\t visited=%A\t remaining=%A" njl count visited (List.length candidates)
+                        yield count
+                    elif safePowerLevel m njl && allStates.Add(njl) then
+                        next <- njl :: next
+            yield! finder count next
+        }
+    finder 0 (List.singleton initialJoltage) |> Seq.head
+
+
 let adjustJoltage2 m =
     let initialJoltage = JL(Array.create (m.diagram.Length) 0)
     let mutable allStates = Set.empty
@@ -255,10 +279,12 @@ let part2 (aj: Machine -> int) fn =
 // let ims = readMachines inputFilename;;
 // let inital = JL (Array.create 5 0);;
 
+// exampleFilename |> (part2 adjustJoltageBF2)
 // exampleFilename |> (part2 adjustJoltage2)
 // exampleFilename |> (part2 (adjustJoltage hdTotalMinSteps))
 // exampleFilename |> (part2 (adjustJoltage hdFurthestMinSteps))
 
+// midFilename |> (part2 adjustJoltageBF2)
 // midFilename |> (part2 adjustJoltage2)
 // midFilename |> (part2 (adjustJoltage hdTotalMinSteps))
 // midFilename |> (part2 (adjustJoltage hdTotalMinSteps2))

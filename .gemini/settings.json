@@ -1,0 +1,6 @@
+{
+    "general": {
+        "previewFeatures": true
+    },
+    "coreTools": ["ShellTool","LSTool", "ReadFileTool", "WriteFileTool","GrepTool","GlobTool", "EditTool"]
+}
