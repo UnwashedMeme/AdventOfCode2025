@@ -1,4 +1,5 @@
 {
     "FSharp.dotnetRoot": "/usr/lib/dotnet",
-    "FSharp.TestExplorer.UseLegacyDotnetCliIntegration": true
+    "FSharp.TestExplorer.UseLegacyDotnetCliIntegration": true,
+    "geminicodeassist.agentYoloMode": true
 }
